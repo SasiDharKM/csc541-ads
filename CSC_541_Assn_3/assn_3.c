@@ -18,7 +18,7 @@ void print_standard(struct timeval  begin, struct timeval finish){
 
 }
 
-void merge(int start, char* input_filename, FILE *output_file, int append_no, char* append_name, int no_of_runs){
+void merge(int start, char input_filename[], FILE *output_file, int append_no, char append_name[], int no_of_runs){
 
   int size_filename = strlen(input_filename)+append_no;
   int output[1000];
@@ -110,11 +110,39 @@ void merge(int start, char* input_filename, FILE *output_file, int append_no, ch
     fwrite(output, sizeof(int), outIndex, output_file);
   }
 }
+
+void heapify(int heap_array[], int i, int n){
+
+  int smallest = i;
+  int left = 2*i + 1;
+  int right = 2*i + 2;
+
+  if(left < n && heap_array[left] < heap_array[i] ){
+    smallest = left;
+  }
+  if(right < n && heap_array[right] < heap_array[smallest]){
+    smallest = right;
+  }
+  if(smallest != i){
+    int temp = heap_array[i];
+    heap_array[i] = heap_array[smallest];
+    heap_array[smallest] = temp;
+    heapify(heap_array, smallest, n);
+  }
+}
+
+void heap_sort(int heap_array[], int n){
+  int i = n/2;
+  while(i>=0){
+    heapify(heap, i, n);
+    i--;
+  }
+}
 int comparision(const void* a, const void* b){
   return (*(int*)a - *(int*)b);
 }
 
-void sort_write_blocks(char* input_filename, FILE *input_file, int block_len, int run){
+void sort_write_blocks(char input_filename[], FILE *input_file, int block_len, int run){
   int block[block_len];
   char run_filename[strlen(input_filename) + 4];
   char index[4];
@@ -122,7 +150,7 @@ void sort_write_blocks(char* input_filename, FILE *input_file, int block_len, in
   strcpy(run_filename, input_filename);
   strcat(run_filename, index);
 
-  FILE* temp_file = fopen(run_filename, "w");
+  FILE *temp_file = fopen(run_filename, "w");
   fread(block, sizeof(int), block_len, input_file);
   qsort(block,block_len, sizeof(int), comparision);
   fwrite(block, sizeof(int), block_len, temp_file);
@@ -132,9 +160,9 @@ void sort_write_blocks(char* input_filename, FILE *input_file, int block_len, in
 int main(int argc, char *argv[]){
 
 int mergesort_method_flag = 10;
-char *mergesort_method = argv[1];
-char *index_filename = argv[2];
-char *sorted_index_filename = argv[3];
+char mergesort_method[] = argv[1];
+char index_filename[] = argv[2];
+char sorted_index_filename[] = argv[3];
 
 struct timeval begin;
 struct timeval finish;
@@ -149,7 +177,7 @@ else if (!strcmp(mergesort_method,"--replacement")){
   mergesort_method_flag = 3;
 }
 
-FILE* index_file = fopen(index_filename, "r");
+FILE *index_file = fopen(index_filename, "r");
 fseek(index_file, 0, SEEK_END);
 size_t len_size = (size_t)ftell(index_file)/sizeof(int);
 
@@ -215,7 +243,10 @@ switch(mergesort_method_flag){
     break;
   }
   case 3: {
+    gettimeofday(&begin, NULL);
     //call replacement method
+    gettimeofday(&finish, NULL);
+    print_standard(begin, finish);
     break;
   }
   default: {
