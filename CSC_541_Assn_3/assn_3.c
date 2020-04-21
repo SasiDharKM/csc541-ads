@@ -170,16 +170,48 @@ switch(mergesort_method_flag){
   case 1: {
     gettimeofday(&begin, NULL);
 
-    FILE *sorted = fopen(sorted_index_filename, "w");
-    merge(0, index_filename, sorted, 4,".%03d", no_of_runs);
-    fclose(sorted);
+    FILE *sorted_index_file = fopen(sorted_index_filename, "w");
+    merge(0, index_filename, sorted_index_file, 4,".%03d", no_of_runs);
+    fclose(sorted_index_file);
 
     gettimeofday(&finish, NULL);
     print_standard(begin, finish);
     break;
   }
   case 2: {
-    //call multistep method
+    gettimeofday(&begin, NULL);
+    char super_run_filename[strlen(index_filename) + 10];
+    FILE *sorted_index_file = fopen(sorted_index_filename, "w");
+
+    int no_of_super_runs = no_of_runs/15;
+    if(no_of_runs%15 != 0){
+      no_of_super_runs = no_of_super_runs + 1;
+    }
+
+    int loop = 0;
+    while(loop < no_of_super_runs - 1){
+      char temp[10];
+      strcpy(super_run_filename, index_filename);
+      sprintf(temp, ".super.%03d", loop);
+      strcat(super_run_filename, temp);
+      FILE *super_run_file = fopen(super_run_filename, "w");
+      merge(loop*15, index_filename, super_run_file, 4, ".%03d", 15);
+      fclose(super_run_file);
+      loop++;
+    }
+    char temp[10];
+    strcpy(super_run_filename, index_filename);
+    sprintf(temp, ".super.%03d", no_of_super_runs -1);
+    strcat(super_run_filename, temp);
+    FILE *super_run_file = fopen(super_run_filename, "w");
+    merge((no_of_super_runs - 1)*15, index_filename, super_run_file, 4, ".%03d", no_of_runs - 15*(no_of_super_runs - 1));
+    fclose(super_run_file);
+
+    merge(0, index_filename, sorted_index_file, 10, ".super.%03d", no_of_super_runs);
+    fclose(sorted_index_file);
+
+    gettimeofday(&finish, NULL);
+    print_standard(begin, finish);
     break;
   }
   case 3: {
